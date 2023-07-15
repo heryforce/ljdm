@@ -1,0 +1,10 @@
+oneup_flysystem:
+    adapters:
+        photos_adapter:
+            local:
+                location: ~
+
+    filesystems:
+        photos_filesystem:
+            adapter: photos_adapter
+            alias: League\Flysystem\Filesystem

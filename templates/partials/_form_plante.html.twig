@@ -1,0 +1,46 @@
+{{ form_start(form, {
+	attr: {
+		id: 'formPlante'
+	}
+}) }}
+
+{{form_row(form.nom)}}
+{{ form_row(form.nomLatin) }}
+{{form_row(form.nombre, {
+    label: 'Combien j\'en ai des comme ça ?'
+})}}
+{{form_row(form.luminosite, {
+	label: 'Luminosité'
+})}}
+<div class="row">
+	<div class="col">
+		{{form_row(form.arrosageNb, {
+        label: 'Arrosage'
+    })}}
+	</div>
+	<div class="col">
+		{{form_row(form.arrosageStr, {
+            label: 'fois par'
+        })}}
+	</div>
+</div>
+{{form_row(form.bouturage)}}
+{{form_row(form.particularites)}}
+{{form_row(form.notes)}}
+
+{% if app.current_route == 'dashboard_edit_plante' %}
+<div class="row">
+	{% for photo in plante.photos %}
+		<div class="col text-center">
+			<img src="{{ asset('photos/plantes/' ~ photo.fichier) }}" style="width: 300px;"> <br>
+			<a href="{{ path('dashboard_remove_photo', {planteId: plante.id, photoId: photo.id}) }}" onclick="return confirm('Es-tu sûre de vouloir supprimer cette photo ?')" class="btn btn-danger my-2">Supprimer cette photo</a>
+		</div>
+	{% endfor %}
+</div>
+
+{% endif %}
+
+
+{% include "partials/_dropzone.html.twig" with {url: oneup_uploader_endpoint('photos'), label:label, id: 'formPlante' } %}
+
+{{ form_end(form) }}

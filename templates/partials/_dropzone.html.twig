@@ -1,0 +1,31 @@
+<div class="dropzone mb-2" id="myDropzone"></div>
+{% include "partials/_submit_button.html.twig" with {label: label} %}
+
+<script>
+Dropzone.options.myDropzone = {
+    url: "{{ url }}",
+    uploadMultiple: true,
+    maxFileSize: 5,
+    acceptedFiles: 'image/jpg,image/png,image/jpeg',
+    autoProcessQueue: false,
+    dictDefaultMessage: 'Fais un cliquer-déposer dans la zone ou clique pour upload les photos',
+    addRemoveLinks: true,
+    dictRemoveFile: 'Supprimer le fichier',
+
+    init: function() {
+        myDropzone = this;
+       document.querySelector("#submitButton").addEventListener("click", function() {
+            if (myDropzone.getQueuedFiles().length == 0 ) {
+                document.querySelector("#formPlante").submit();
+            }
+            else {
+                myDropzone.processQueue();
+            }
+        });
+        myDropzone.on("queuecomplete", function() {
+            document.querySelector("#formPlante").submit();
+        })
+    }
+}
+
+</script>

@@ -1,0 +1,29 @@
+BDD :
+- Plante :
+  - id
+  - nom
+  - particularité (champ libre texte)
+  - arrosage (<chiffre> fois par <jour/semaine/mois>)
+  - occurrences (int)
+  - bouturage (champ libre texte)
+  - fleur (choice oui / non)
+  - luminosite_id
+  - user_id
+
+- Photo:
+  - id
+  - fichier
+  - plante_id
+
+- Luminosite:
+  - id
+  - libelle ["soleil direct", "soleil indirect", "pas de soleil"]
+
+- User:
+  - email
+  - password
+  - photo
+
+Accueil :
+  - Afficher plantes comme sur vertbobo
+  - Clic sur photo : go sur page details : carrousel des photos en haut, toutes les informations de la plante au milieu, proposition de plantes similaires en bas 

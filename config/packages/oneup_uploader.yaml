@@ -1,0 +1,7 @@
+oneup_uploader:
+    mappings:
+        photos:
+            frontend: dropzone
+            namer: app.photo_namer
+            storage:
+                directory: "%kernel.project_dir%/public/photos/plantes/"
