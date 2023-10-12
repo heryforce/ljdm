@@ -9,7 +9,6 @@ use App\Form\PlanteType;
 use App\Repository\PhotoRepository;
 use App\Repository\PlanteRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use League\Flysystem\FilesystemOperator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,35 +20,78 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 #[Route('/dashboard')]
 class DashboardController extends AbstractController
 {
-    #[Route('/', name: 'dashboard_index')]
-    public function index(PlanteRepository $planteRepository): Response
+    #[Route('/', name: 'dashboard')]
+    public function index(PlanteRepository $planteRepository, Request $request): Response
     {
+        $session = $request->getSession();
+        $session->set('previousRoute', $request->get('_route'));
+
         return $this->render('dashboard/index.html.twig', [
-            'plantes' => $planteRepository->findAll(),
+            'plantes' => $planteRepository->findBy(['temporaire' => false]),
         ]);
     }
 
-    #[Route('/add/plante/', name: 'dashboard_add_plante')]
+    #[Route('/propositions', name: 'dashboard_propositions')]
+    public function propositions(PlanteRepository $planteRepository, Request $request)
+    {
+        $session = $request->getSession();
+        $session->set('previousRoute', $request->get('_route'));
+
+        return $this->render('dashboard/propositions.html.twig', [
+            'plantes' => $planteRepository->findBy(['temporaire' => true]),
+        ]);
+    }
+
+    #[Route('/valider/plante/{id}', name: 'dashboard_valider_plante')]
+    public function validerPlante(?Plante $plante, EntityManagerInterface $entityManagerInterface)
+    {
+        if (!$plante) {
+            return $this->redirectToRoute('dashboard');
+        }
+        $plante->setTemporaire(false);
+        $entityManagerInterface->persist($plante);
+        $entityManagerInterface->flush();
+        $this->addFlash('success', 'Cette plante a été validée !');
+
+        return $this->redirectToRoute('dashboard_propositions');
+    }
+
+    #[Route('/add/plante', name: 'dashboard_add_plante')]
     public function add(Request $request, EntityManagerInterface $entityManagerInterface, #[CurrentUser()] ?User $user)
     {
         $session = $request->getSession();
         $plante = new Plante();
         $form = $this->createForm(PlanteType::class, $plante);
         $form->handleRequest($request);
+        $flag = 0;
         if ($form->isSubmitted() && $form->isValid()) {
             foreach ($session->get('files', []) as $fichier) {
+                $flag++;
                 $photo = new Photo();
                 $photo->setFichier($fichier)
                     ->setPlante($plante);
                 $entityManagerInterface->persist($photo);
             }
-            $plante->setUser($user);
+            if (!$plante->getNom() && $flag == 0) {
+                $this->addFlash('danger', 'Il faut au moins indiquer un nom ou envoyer une photo !');
+
+                return $this->redirectToRoute('dashboard_add_plante');
+            }
+            $plante->setUser($user)
+                ->setUserAffiche(false)
+                ->setTemporaire(false);
             $entityManagerInterface->persist($plante);
             $entityManagerInterface->flush();
             $this->addFlash('success', 'Ta nouvelle plante est prête !');
-            $session->clear();
+            $session->remove('files');
 
-            return $this->redirectToRoute('dashboard_index');
+            $prevRoute = $session->get('previousRoute', '');
+            if ($prevRoute != '') {
+                $session->remove('previousRoute');
+                return $this->redirectToRoute($prevRoute);
+            } else {
+                return $this->redirectToRoute('dashboard');
+            }
         }
 
         return $this->render('dashboard/add.html.twig', [
@@ -61,9 +103,9 @@ class DashboardController extends AbstractController
     public function edit(?Plante $plante, Request $request, EntityManagerInterface $entityManagerInterface)
     {
         if (!$plante)
-            return $this->redirectToRoute('dashboard_index');
+            return $this->redirectToRoute('dashboard');
 
-        dump($request->getSession()->get('files', []));
+        // dump($request->getSession()->get('files', []));
         $form = $this->createForm(PlanteType::class, $plante);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -77,9 +119,15 @@ class DashboardController extends AbstractController
             $entityManagerInterface->persist($plante);
             $entityManagerInterface->flush();
             $this->addFlash('success', 'Tes modifications ont bien été prises en compte !');
-            $session->clear();
+            $session->remove('files');
 
-            return $this->redirectToRoute('dashboard_index');
+            $prevRoute = $session->get('previousRoute', '');
+            if ($prevRoute != '') {
+                $session->remove('previousRoute');
+                return $this->redirectToRoute($prevRoute);
+            } else {
+                return $this->redirectToRoute('dashboard');
+            }
         }
 
         return $this->render('dashboard/edit.html.twig', [
@@ -89,19 +137,26 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/remove/plante/{id}', name: 'dashboard_remove_plante')]
-    public function remove(?Plante $plante, EntityManagerInterface $entityManagerInterface)
+    public function remove(?Plante $plante, EntityManagerInterface $entityManagerInterface, Request $request)
     {
         if (!$plante)
             return $this->redirectToRoute('dashboard_index');
 
+        $session = $request->getSession();
         $entityManagerInterface->remove($plante);
         $entityManagerInterface->flush();
         $this->addFlash('success', 'La plante a bien été supprimée !');
 
-        return $this->redirectToRoute('dashboard_index');
+        $prevRoute = $session->get('previousRoute', '');
+        if ($prevRoute != '') {
+            $session->remove('previousRoute');
+            return $this->redirectToRoute($prevRoute);
+        } else {
+            return $this->redirectToRoute('dashboard');
+        }
     }
 
-    #[Route('/remove/photo/{planteId}/{photoId}/', name: 'dashboard_remove_photo')]
+    #[Route('/remove/photo/{planteId}/{photoId}', name: 'dashboard_remove_photo')]
     public function photoRemove(#[CurrentUser()] ?User $user, PhotoRepository $photoRepository, PlanteRepository $planteRepository, EntityManagerInterface $entityManagerInterface, $photoId, $planteId, $photosDossier, Request $request)
     {
         $photo = $photoRepository->find($photoId);

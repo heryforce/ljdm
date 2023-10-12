@@ -1,0 +1,64 @@
+<table class="table">
+	<thead>
+		<th>Id</th>
+		<th>Nom</th>
+		<th>Nom latin</th>
+		<th>Photos</th>
+		<th>Luminosité</th>
+		<th>Arrosage</th>
+		<th>Bouturage</th>
+		<th>Particularités</th>
+		<th>Maladies</th>
+		<th>Notes</th>
+		<th>Ajoutée par</th>
+		<th>Actions</th>
+	</thead>
+	<tbody>
+		{% for plante in plantes %}
+			<tr>
+				<td>
+					{{ plante.id }}
+				</td>
+				<td>
+					{{ plante.nom }}
+				</td>
+				<td>
+					{{ plante.nomLatin }}
+				</td>
+				<td>
+					{% for photo in plante.photos %}
+						<img style="width: 100px;" src="{{ asset('photos/plantes/' ~ photo.fichier) }}" alt="">
+					{% endfor %}
+				</td>
+				<td>
+					{{ plante.luminosite.libelle }}
+				</td>
+				<td>
+					{{ plante.arrosage}}
+				</td>
+				<td>
+					{{ plante.bouturage }}
+				</td>
+				<td>
+					{% for particularite in plante.particularites %}
+						-
+						{{ particularite }}
+						<br>
+					{% endfor %}
+				</td>
+				<td>{{ plante.maladies }}</td>
+				<td>
+					{{ plante.notes }}
+				</td>
+				<td>{{ plante.user.pseudo }}</td>
+				<td>
+					{% if app.request.get('_route') == 'dashboard_propositions' %}
+						<a href="{{ path('dashboard_valider_plante', {id: plante.id}) }}" onclick="return confirm('Es-tu sûre de vouloir valider cette proposition ?')">✔</a>
+					{% endif %}
+					<a href="{{ path('dashboard_edit_plante', {id: plante.id}) }}">✏</a>
+					<a href="{{ path('dashboard_remove_plante', {id: plante.id}) }}" onclick="return confirm('Es-tu sûre de vouloir supprimer cette plante ?')">❌</a>
+				</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>

@@ -12,19 +12,20 @@
 		<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous" defer></script>
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous" defer></script>
 		<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
-		<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css"/>
-		{% block stylesheets %}{% endblock %}{% block javascripts %}{% endblock %}
+		<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css"/> {% block stylesheets %}{% endblock %}{% block javascripts %}{% endblock %}
 		</head>
 		<body>
 			<nav class="navbar navbar-expand-lg bg-light">
 				<div class="container-fluid">
-					<a class="navbar-brand" href="{{ path('main_index') }}">Le jardin de Melody ❤</a>
+					<a class="navbar-brand" href="{{ path('main') }}">Le jardin de Melody ❤</a>
 					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
 						<span class="navbar-toggler-icon"></span>
 					</button>
 					<div class="collapse navbar-collapse" id="navbarNavAltMarkup">
 						<div class="navbar-nav">
-							<a class="nav-link active" href="{{ path('dashboard_index') }}">Dashboard</a>
+							<a class="nav-link active" href="{{ path('dashboard') }}">Dashboard</a>
+							<a class="nav-link active" href="#">Mon jardin</a>
+							<a class="nav-link active" href="{{ path('main_proposition_plante') }}">Proposer une plante</a>
 						</div>
 					</div>
 				</div>

@@ -2,8 +2,9 @@
 
 namespace App\Entity;
 
-use App\Repository\PhotoRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\PhotoRepository;
 
 #[ORM\Entity(repositoryClass: PhotoRepository::class)]
 class Photo
@@ -13,7 +14,7 @@ class Photo
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::TEXT, length: 255)]
     private ?string $fichier = null;
 
     #[ORM\ManyToOne(inversedBy: 'photos')]

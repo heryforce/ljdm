@@ -20,7 +20,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180, unique: true)]
+    #[ORM\Column(Types::TEXT, length: 180, unique: true)]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -32,18 +32,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Plante::class, orphanRemoval: true)]
-    private Collection $plantes;
-
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: Types::TEXT, length: 255, nullable: true)]
     private ?string $photo = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::TEXT, length: 255)]
     private ?string $pseudo = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserPlante::class, orphanRemoval: true)]
+    private Collection $userPlantes;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Plante::class)]
+    private Collection $plantes;
 
     public function __construct()
     {
-        $this->plantes = new ArrayCollection();
+        $this->userPlantes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -116,6 +119,60 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
+    public function getPhoto(): ?string
+    {
+        return $this->photo;
+    }
+
+    public function setPhoto(?string $photo): static
+    {
+        $this->photo = $photo;
+
+        return $this;
+    }
+
+    public function getPseudo(): ?string
+    {
+        return $this->pseudo;
+    }
+
+    public function setPseudo(string $pseudo): static
+    {
+        $this->pseudo = $pseudo;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, UserPlante>
+     */
+    public function getUserPlantes(): Collection
+    {
+        return $this->userPlantes;
+    }
+
+    public function addUserPlante(UserPlante $userPlante): static
+    {
+        if (!$this->userPlantes->contains($userPlante)) {
+            $this->userPlantes->add($userPlante);
+            $userPlante->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserPlante(UserPlante $userPlante): static
+    {
+        if ($this->userPlantes->removeElement($userPlante)) {
+            // set the owning side to null (unless already changed)
+            if ($userPlante->getUser() === $this) {
+                $userPlante->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Plante>
      */
@@ -142,30 +199,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $plante->setUser(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getPhoto(): ?string
-    {
-        return $this->photo;
-    }
-
-    public function setPhoto(?string $photo): static
-    {
-        $this->photo = $photo;
-
-        return $this;
-    }
-
-    public function getPseudo(): ?string
-    {
-        return $this->pseudo;
-    }
-
-    public function setPseudo(string $pseudo): static
-    {
-        $this->pseudo = $pseudo;
 
         return $this;
     }
