@@ -19,7 +19,7 @@ class MainController extends AbstractController
     #[Route('/', name: 'main')]
     public function index(PlanteRepository $planteRepository): Response
     {
-        $plantes = $planteRepository->findAll();
+        $plantes = $planteRepository->findBy(['temporaire' => false]);
         return $this->render('main/index.html.twig', [
             'plantes' => $plantes
         ]);
