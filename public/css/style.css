@@ -1,0 +1,9 @@
+body {
+  font-family: "Michroma", sans-serif; /*ok*/
+  font-family: "Syncopate", sans-serif; /*ok*/
+  font-family: "Special Elite", system-ui; /*ok*/
+  font-family: "Staatliches", sans-serif; /*à voir en plus grand*/
+  font-family: "Nothing You Could Do", cursive; /* ok pour le titre*/
+  font-family: "Abril Fatface", serif; /*ok*/
+  font-family: "Bebas Neue", sans-serif; /*ok classique*/
+}

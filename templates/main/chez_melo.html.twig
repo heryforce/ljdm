@@ -1,0 +1,32 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Chez Melo =)
+{% endblock %}
+{% block body %}
+	<h1 class="text-center mb-4">Chez Melo</h1>
+	<div class="row">
+		{% for plante in tabPlantes %}
+			<div class="col-lg-6">
+				<table>
+					<tbody>
+						<tr>
+							<td>
+								<img src="{{ asset('photos/plantes/' ~ plante.photo) }}" alt="" class="rounded" style="width: 400px;">
+							</td>
+							<td class="text-center">
+								<h3>
+									{{ plante.nomFr }}
+								</h3>
+								<br>
+								<h3>
+									{{ plante.nomLatin }}
+								</h3>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		{% endfor %}
+	</div>
+
+{% endblock %}

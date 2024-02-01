@@ -3,8 +3,14 @@ oneup_flysystem:
         photos_adapter:
             local:
                 location: ~
+        # carousel_adapter:
+            # local:
+            #     location: ~
 
     filesystems:
         photos_filesystem:
             adapter: photos_adapter
             alias: League\Flysystem\Filesystem
+        # carousel_filesystem:
+        #     adapter: photos_adapter
+        #     alias: League\Flysystem\Filesystem

@@ -26,7 +26,6 @@ class Plante
     private ?string $bouturage = null;
 
     #[ORM\ManyToOne(inversedBy: 'plantes')]
-    #[ORM\JoinColumn(nullable: false)]
     private ?Luminosite $luminosite = null;
 
     #[ORM\OneToMany(mappedBy: 'plante', targetEntity: Photo::class, orphanRemoval: true)]

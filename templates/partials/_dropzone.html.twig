@@ -16,14 +16,14 @@ Dropzone.options.myDropzone = {
         myDropzone = this;
        document.querySelector("#submitButton").addEventListener("click", function() {
             if (myDropzone.getQueuedFiles().length == 0 ) {
-                document.querySelector("#formPlante").submit();
+                document.querySelector("#{{ id }}").submit();
             }
             else {
                 myDropzone.processQueue();
             }
         });
         myDropzone.on("queuecomplete", function() {
-            document.querySelector("#formPlante").submit();
+            document.querySelector("#{{ id }}").submit();
         })
     }
 }

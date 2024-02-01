@@ -1,0 +1,29 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+
+{% set label = 'Enregistrer' %}
+
+Ajouter des photos au carousel de l'accueil
+
+{{ form_start(form, {
+    attr: {
+        id: 'formCarousel'
+    }
+}) }}
+
+<div class="row">
+		{% for photo in photos %}
+			<div class="col text-center">
+				<img src="{{ asset('photos/carousel/' ~ photo.fichier) }}" style="width: 300px;">
+				<br>
+				<a href="{{ path('dashboard_carousel_remove_photo', {photoId: photo.id}) }}" onclick="return confirm('Es-tu sûre de vouloir supprimer cette photo du carousel ?')" class="btn btn-danger my-2">Supprimer cette photo</a>
+			</div>
+		{% endfor %}
+	</div>
+
+{% include "partials/_dropzone.html.twig" with {url: oneup_uploader_endpoint('carousel'), label:label, id: 'formCarousel' } %}
+
+{{ form_end(form) }}
+
+{% endblock %}

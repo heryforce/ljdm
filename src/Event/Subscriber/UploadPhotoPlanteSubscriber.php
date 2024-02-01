@@ -9,25 +9,36 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class UploadPhotoPlanteSubscriber implements EventSubscriberInterface
 {
-    private $session;
+    private $rs;
 
     public function __construct(RequestStack $requestStack)
     {
-        $this->session = $requestStack->getSession();
+        $this->rs = $requestStack;
     }
 
     public static function getSubscribedEvents(): array
     {
         return [
-            UploadEvents::postUpload('photos') => ['onPostUpload'],
+            UploadEvents::postUpload('photos') => ['onPostUploadPhoto'],
+            UploadEvents::postUpload('carousel') => ['onPostUploadCarousel'],
         ];
     }
 
-    public function onPostUpload(PostUploadEvent $event)
+    public function onPostUploadPhoto(PostUploadEvent $event)
     {
+        $session = $this->rs->getSession();
         $fileName = $event->getFile()->getFilename();
-        $tab = $this->session->get('files', []);
+        $tab = $session->get('files', []);
         $tab[] = $fileName;
-        $this->session->set('files', $tab);
+        $session->set('files', $tab);
+    }
+
+    public function onPostUploadCarousel(PostUploadEvent $event)
+    {
+        $session = $this->rs->getSession();
+        $fileName = $event->getFile()->getFilename();
+        $tab = $session->get('carousel', []);
+        $tab[] = $fileName;
+        $session->set('carousel', $tab);
     }
 }

@@ -31,7 +31,9 @@
 					{% endfor %}
 				</td>
 				<td>
+				{% if plante.luminosite is not null %}
 					{{ plante.luminosite.libelle }}
+				{% endif %}
 				</td>
 				<td>
 					{{ plante.arrosage}}

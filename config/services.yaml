@@ -12,6 +12,7 @@ services:
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         bind:
             $photosDossier: "%kernel.project_dir%/public/photos/plantes/"
+            $carouselDossier: "%kernel.project_dir%/public/photos/carousel/"
 
     app.photo_namer:
         class: App\Namer\PhotoNamer

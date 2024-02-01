@@ -6,7 +6,10 @@ use App\Entity\Photo;
 use App\Entity\Plante;
 use App\Entity\User;
 use App\Form\PlanteType;
+use App\Repository\CarouselAccueilRepository;
 use App\Repository\PlanteRepository;
+use App\Repository\UserPlanteRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,16 +19,18 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 class MainController extends AbstractController
 {
-    #[Route('/', name: 'main')]
-    public function index(PlanteRepository $planteRepository): Response
+    #[Route('/', name: 'home')]
+    public function index(PlanteRepository $planteRepository, CarouselAccueilRepository $carouselAccueilRepository): Response
     {
+        $carousel = $carouselAccueilRepository->findAll();
         $plantes = $planteRepository->findBy(['temporaire' => false]);
         return $this->render('main/index.html.twig', [
-            'plantes' => $plantes
+            'plantes' => $plantes,
+            'carousel' => $carousel,
         ]);
     }
 
-    #[Route('/proposition/plante', name: 'main_proposition_plante')]
+    #[Route('/proposition/plante', name: 'proposition_plante')]
     public function propositionPlante(Request $request, EntityManagerInterface $entityManagerInterface, #[CurrentUser()] ?User $user)
     {
         $session = $request->getSession();
@@ -43,7 +48,7 @@ class MainController extends AbstractController
             }
             if (!$plante->getNom() && $flag == 0) {
                 $this->addFlash('danger', 'Il faut au moins indiquer un nom ou envoyer une photo !');
-                return $this->redirectToRoute('main_proposition_plante');
+                return $this->redirectToRoute('proposition_plante');
             }
             $plante->setUser($user)
                 ->setTemporaire(true);
@@ -55,6 +60,24 @@ class MainController extends AbstractController
         }
         return $this->render('main/proposition_plante.html.twig', [
             'form' => $form,
+        ]);
+    }
+
+    #[Route('/chez+melo', name: 'chez_melo')]
+    public function chezMelo(UserPlanteRepository $userPlanteRepository, UserRepository $userRepository)
+    {
+        $userPlantes = $userPlanteRepository->findBy(['user' => $userRepository->findOneBy(['email' => 'admin@admin.com'])]);
+        $tabPlantes = [];
+        foreach ($userPlantes as $userPlante) {
+            $tabPlantes[] = [
+                'nomFr' => $userPlante->getPlante()->getNom(),
+                'nomLatin' => $userPlante->getPlante()->getNomLatin(),
+                'photo' => $userPlante->getPlante()->getPhotos()[0]->getFichier(),
+            ];
+        }
+
+        return $this->render('main/chez_melo.html.twig', [
+            'tabPlantes' => $tabPlantes,
         ]);
     }
 }

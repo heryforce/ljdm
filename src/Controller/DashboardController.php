@@ -2,10 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\CarouselAccueil;
 use App\Entity\Photo;
 use App\Entity\Plante;
 use App\Entity\User;
+use App\Entity\UserPlante;
 use App\Form\PlanteType;
+use App\Repository\CarouselAccueilRepository;
 use App\Repository\PhotoRepository;
 use App\Repository\PlanteRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,6 +31,30 @@ class DashboardController extends AbstractController
 
         return $this->render('dashboard/index.html.twig', [
             'plantes' => $planteRepository->findBy(['temporaire' => false]),
+        ]);
+    }
+
+    #[Route('/carousel', name: 'dashboard_carousel')]
+    public function carousel(CarouselAccueilRepository $carouselAccueilRepository, Request $request, EntityManagerInterface $entityManagerInterface)
+    {
+        $photos = $carouselAccueilRepository->findAll();
+        $form = $this->createFormBuilder()->getForm();
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $session = $request->getSession();
+            foreach ($session->get('carousel', []) as $fichier) {
+                $photo = new CarouselAccueil();
+                $photo->setFichier($fichier);
+                $entityManagerInterface->persist($photo);
+            }
+            $entityManagerInterface->flush();
+            $this->addFlash('success', 'La photo a bien été ajoutée !');
+            $session->remove('carousel');
+            return $this->redirectToRoute('dashboard_carousel');
+        }
+        return $this->render('dashboard/carousel.html.twig', [
+            'photos' => $photos,
+            'form' => $form,
         ]);
     }
 
@@ -57,7 +84,7 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/add/plante', name: 'dashboard_add_plante')]
-    public function add(Request $request, EntityManagerInterface $entityManagerInterface, #[CurrentUser()] ?User $user)
+    public function addPlante(Request $request, EntityManagerInterface $entityManagerInterface, #[CurrentUser()] ?User $user)
     {
         $session = $request->getSession();
         $plante = new Plante();
@@ -80,6 +107,11 @@ class DashboardController extends AbstractController
             $plante->setUser($user)
                 ->setUserAffiche(false)
                 ->setTemporaire(false);
+            $userPlante = new UserPlante();
+            $userPlante->setUser($user)
+                ->setPlante($plante)
+                ->setNombre(1);
+            $entityManagerInterface->persist($userPlante);
             $entityManagerInterface->persist($plante);
             $entityManagerInterface->flush();
             $this->addFlash('success', 'Ta nouvelle plante est prête !');
@@ -100,12 +132,11 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/edit/plante/{id}', name: 'dashboard_edit_plante')]
-    public function edit(?Plante $plante, Request $request, EntityManagerInterface $entityManagerInterface)
+    public function editPlante(?Plante $plante, Request $request, EntityManagerInterface $entityManagerInterface)
     {
         if (!$plante)
             return $this->redirectToRoute('dashboard');
 
-        // dump($request->getSession()->get('files', []));
         $form = $this->createForm(PlanteType::class, $plante);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -137,7 +168,7 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/remove/plante/{id}', name: 'dashboard_remove_plante')]
-    public function remove(?Plante $plante, EntityManagerInterface $entityManagerInterface, Request $request)
+    public function removePlante(?Plante $plante, EntityManagerInterface $entityManagerInterface, Request $request)
     {
         if (!$plante)
             return $this->redirectToRoute('dashboard_index');
@@ -157,7 +188,7 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/remove/photo/{planteId}/{photoId}', name: 'dashboard_remove_photo')]
-    public function photoRemove(#[CurrentUser()] ?User $user, PhotoRepository $photoRepository, PlanteRepository $planteRepository, EntityManagerInterface $entityManagerInterface, $photoId, $planteId, $photosDossier, Request $request)
+    public function removePhoto(#[CurrentUser()] ?User $user, PhotoRepository $photoRepository, PlanteRepository $planteRepository, EntityManagerInterface $entityManagerInterface, $photoId, $planteId, $photosDossier, Request $request)
     {
         $photo = $photoRepository->find($photoId);
         $plante = $planteRepository->find($planteId);
@@ -176,12 +207,39 @@ class DashboardController extends AbstractController
             }
             $session->set('files', $tabPhotos);
             $fs->remove($photosDossier . $photo->getFichier());
-            $entityManagerInterface->remove($photoRepository->find($photoId));
+            // $entityManagerInterface->remove($photoRepository->find($photoId));
+            $entityManagerInterface->remove($photo);
             $entityManagerInterface->flush();
             $this->addFlash('success', 'La photo a bien été supprimée !');
         }
         return $this->redirectToRoute('dashboard_edit_plante', [
             'id' => $planteId,
         ]);
+    }
+
+    #[Route('/remove/photo/{photoId}', name: 'dashboard_carousel_remove_photo')]
+    public function carouselRemovePhoto(#[CurrentUser()] ?User $user, EntityManagerInterface $entityManagerInterface, $photoId, $carouselDossier, Request $request, CarouselAccueilRepository $carouselAccueilRepository)
+    {
+        $photo = $carouselAccueilRepository->find($photoId);
+        if (!$user || !$photo) {
+            return $this->render('error/404.html.twig');
+        }
+
+        $fs = new Filesystem();
+        $session = $request->getSession();
+        if ($fs->exists($carouselDossier . $photo->getFichier())) {
+            $tabPhotos = $session->get('carousel', []);
+            foreach ($tabPhotos as $k => $fichier) {
+                if ($fichier === $photo->getFichier()) {
+                    unset($tabPhotos[$k]);
+                }
+            }
+            $session->set('carousel', $tabPhotos);
+            $fs->remove($carouselDossier . $photo->getFichier());
+            $entityManagerInterface->remove($photo);
+            $entityManagerInterface->flush();
+            $this->addFlash('success', 'La photo a bien été supprimée !');
+        }
+        return $this->redirectToRoute('dashboard_carousel');
     }
 }
